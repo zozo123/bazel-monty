@@ -19,7 +19,7 @@ jobs:
         run: ./scripts/run_local_demo.sh
 
       - name: Upload demo metrics
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: bazel-monty-local-demo-metrics
           path: |
