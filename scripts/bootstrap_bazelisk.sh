@@ -18,6 +18,25 @@ else
   java -version
 fi
 
+set +u
+# shellcheck disable=SC1091
+[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+set -u
+
+if [ -n "${JAVA_HOME:-}" ] && [ -f /etc/ssl/certs/islo-ca.pem ]; then
+  truststore="$JAVA_HOME/lib/security/cacerts"
+  if ! keytool -list -keystore "$truststore" -storepass changeit -alias islo-gateway-ca >/dev/null 2>&1; then
+    echo "Importing Islo Gateway CA into SDKMAN Java trust store"
+    keytool -importcert \
+      -noprompt \
+      -trustcacerts \
+      -alias islo-gateway-ca \
+      -file /etc/ssl/certs/islo-ca.pem \
+      -keystore "$truststore" \
+      -storepass changeit >/dev/null
+  fi
+fi
+
 if command -v bazelisk >/dev/null 2>&1; then
   bazelisk --version
   exit 0
