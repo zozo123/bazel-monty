@@ -1,0 +1,16 @@
+{
+  "bep": {
+    "finished": {},
+    "target_count": 0,
+    "tests": {
+      "failed": 0,
+      "other": 0,
+      "passed": 0
+    }
+  },
+  "log": {
+    "remote_cache_hit_mentions": 0,
+    "remote_cache_lines": []
+  },
+  "name": "local-reader"
+}

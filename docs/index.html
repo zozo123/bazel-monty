@@ -36,7 +36,7 @@
         <article>
           <span class="number">03</span>
           <h2>Prove</h2>
-          <p>Run seed, reader, and RBE stages in isolated Islo sandboxes with JSON metrics.</p>
+          <p>Run local seed/reader cache stages now, then provider RBE stages in Islo when endpoints are configured.</p>
         </article>
       </section>
 
@@ -44,6 +44,7 @@
         <h2>Command Spine</h2>
         <pre><code>bazelisk build //:monty_cli
 bazelisk test //:core_tests
+./scripts/run_local_demo.sh
 ./scripts/run_islo_demo.sh</code></pre>
       </section>
     </main>

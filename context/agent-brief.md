@@ -11,6 +11,8 @@ Make the demo credible end to end:
 - Keep upstream source fetched as an archive, not copied into this repo.
 - Use Bzlmod and current rule versions from `registry.build`.
 - Demonstrate remote cache and remote execution with three Islo sandboxes.
+- Provide a fully runnable local remote-cache proof with Docker and
+  `bazel-remote`.
 - Publish a static GitHub Pages write-up from `docs/`.
 
 ## Critical Files
@@ -21,6 +23,7 @@ Make the demo credible end to end:
 - `third_party/monty/patches/add-bazel-build-files.patch`: overlay added to
   upstream Monty.
 - `scripts/run_islo_demo.sh`: E2E remote-cache/RBE demo.
+- `scripts/run_local_demo.sh`: no-secrets local remote-cache demo.
 - `docs/`: static GitHub Pages source.
 
 ## Useful Checks
@@ -28,6 +31,7 @@ Make the demo credible end to end:
 ```bash
 bazelisk build //:monty_cli
 bazelisk test //:core_tests
+./scripts/run_local_demo.sh
 python3 scripts/collect_bazel_metrics.py --name local --bep docs/metrics/latest-bep.local.json --out docs/metrics/local.local.json
 ```
 

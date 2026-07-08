@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bazel Monty: Remote Builds For A Rust Python Interpreter</title>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <main class="article">
+      <nav><a href="../index.html">Back to demo</a></nav>
+      <p class="kicker">End-to-end demo</p>
+      <h1>Bazelizing Monty without owning a fork.</h1>
+      <p class="lede">
+        Monty is a minimal Python interpreter written in Rust. The demo keeps
+        upstream source immutable, overlays Bazel build files, and then uses
+        remote cache and remote execution to prove the graph can move between
+        machines. The first proof is fully local. The second proof uses Islo and
+        a real provider-backed cache/RBE endpoint.
+      </p>
+
+      <h2>The build contract</h2>
+      <p>
+        The repository pins upstream Monty at
+        <code>4bcbcf5251b3a4a30b22fdfc372e5189adf4b86f</code>. Bazel downloads
+        that archive, verifies its SHA256, and applies
+        <code>third_party/monty/patches/add-bazel-build-files.patch</code>.
+      </p>
+      <pre><code>bazelisk build //:monty_cli
+bazelisk test //:core_tests</code></pre>
+
+      <h2>Why this shape</h2>
+      <p>
+        The overlay keeps the demo reviewable. The root repo owns Bazel policy:
+        Bazel version, remote settings, Islo orchestration, CI, and Pages. The
+        upstream archive owns Monty's Rust source. Updating the demo means
+        changing one commit pin and refreshing one patch.
+      </p>
+
+      <h2>Fully local remote cache</h2>
+      <p>
+        The finish-line demo needs no private service. It starts
+        <code>bazel-remote</code> in Docker, seeds the cache from one fresh Bazel
+        output base, then reads from that cache using a second fresh output base.
+        That makes the cache behavior visible without relying on local action
+        cache state.
+      </p>
+      <pre><code>./scripts/run_local_demo.sh</code></pre>
+      <p>
+        The script writes <code>local-seed.local.json</code>,
+        <code>local-reader.local.json</code>, and matching logs under
+        <code>docs/metrics/</code>. Those files are ignored locally so you can
+        run the demo repeatedly without dirtying the repo.
+      </p>
+      <p>
+        The same proof is available as a manual GitHub Actions workflow named
+        <strong>Demo</strong>. It uploads the generated local metrics as an
+        artifact, which is useful when collecting numbers for the post.
+      </p>
+
+      <h2>Provider cache and RBE</h2>
+      <p>
+        Islo gives the demo clean machines. Bazel still talks to normal REAPI
+        endpoints through <code>--remote_cache</code> and
+        <code>--remote_executor</code>. Copy
+        <code>.bazelrc.remote.example</code> to <code>.bazelrc.remote</code>,
+        fill in provider details, then run the three-sandbox flow:
+      </p>
+      <ol>
+        <li><strong>seed</strong>: build and test with cache upload enabled.</li>
+        <li><strong>reader</strong>: build and test from a separate sandbox with cache upload disabled.</li>
+        <li><strong>rbe</strong>: execute actions remotely on the configured Linux platform.</li>
+      </ol>
+      <pre><code>./scripts/run_islo_demo.sh</code></pre>
+
+      <h2>Live references</h2>
+      <p>
+        Version and flag checks are grounded in
+        <a href="https://registry.build/">registry.build</a>. For this demo, it
+        confirms current Bazel and rule releases, and exposes Bazel 9 remote
+        flags such as <code>--remote_cache</code>,
+        <code>--remote_executor</code>, <code>--credential_helper</code>, and
+        <code>--remote_download_outputs</code>.
+      </p>
+
+      <h2>Metrics</h2>
+      <p>
+        The demo writes summaries into <code>docs/metrics/</code>. Example files
+        are committed so the page structure is stable. Local and provider runs
+        generate richer ignored metrics with cache-log evidence.
+      </p>
+      <div class="metric-links">
+        <a href="../metrics/local-seed.example.json">local seed</a>
+        <a href="../metrics/local-reader.example.json">local reader</a>
+        <a href="../metrics/seed.example.json">seed</a>
+        <a href="../metrics/reader.example.json">reader</a>
+        <a href="../metrics/rbe.example.json">rbe</a>
+      </div>
+    </main>
+  </body>
+</html>

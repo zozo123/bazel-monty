@@ -15,9 +15,44 @@ bazelisk build //:monty_cli
 bazelisk test //...
 ```
 
-Remote cache and RBE endpoints are intentionally not committed. Copy
-`.bazelrc.remote.example` to `.bazelrc.remote` and fill in your provider
-details.
+## Full Local Demo
+
+Run the whole demo locally, including a real remote cache:
+
+```bash
+./scripts/run_local_demo.sh
+```
+
+That script starts `bazel-remote` in Docker, runs a cache-seeding Bazel test
+with one fresh output base, then runs a readonly-cache Bazel test with another
+fresh output base. Metrics and logs are written to `docs/metrics/*.local.*`.
+The cache image, port, and directories are overridable with `CACHE_IMAGE`,
+`CACHE_PORT`, `CACHE_DIR`, and `OUTPUT_ROOT`.
+
+Requirements:
+
+- `bazelisk`
+- `docker`
+- `python3`
+- `curl`
+
+## Remote Provider Demo
+
+Provider-backed remote cache and RBE endpoints are intentionally not committed.
+Copy `.bazelrc.remote.example` to `.bazelrc.remote` and fill in your provider
+details:
+
+```bash
+cp .bazelrc.remote.example .bazelrc.remote
+bazelisk test --config=remote-cache //:core_tests
+bazelisk test --config=rbe //:core_tests
+```
+
+For isolated machine-to-machine proof, use Islo:
+
+```bash
+./scripts/run_islo_demo.sh
+```
 
 ## What This Shows
 
@@ -33,9 +68,25 @@ details.
 
 - `MODULE.bazel` configures Bazel modules, Rust toolchains, and the pinned
   upstream Monty archive.
-- `.bazelrc` defines local, remote-cache, remote-cache-readonly, and RBE
-  configs.
+- `.bazelrc` defines local, local-demo-cache, remote-cache, readonly-cache, and
+  RBE configs.
 - `third_party/monty/` contains the upstream pin, Cargo metadata, and Bazel
   overlay patch.
+- `scripts/run_local_demo.sh` runs the finish-line local remote-cache demo.
+- `scripts/run_islo_demo.sh` runs the three-sandbox provider-backed demo.
 - `context/` is a concise handoff pack for other agents and harnesses.
 - `docs/` is the GitHub Pages source.
+
+## Publishing
+
+The public fork is:
+
+https://github.com/zozo123/bazel-monty
+
+GitHub Pages publishes from `docs/` using `.github/workflows/pages.yml`:
+
+https://zozo123.github.io/bazel-monty/
+
+The manual `.github/workflows/demo.yml` workflow runs the same local
+remote-cache proof in GitHub Actions and uploads the generated metrics as an
+artifact.

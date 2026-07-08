@@ -1,0 +1,28 @@
+name: Demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  local-remote-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Bazelisk
+        uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+
+      - name: Run full local remote-cache demo
+        run: ./scripts/run_local_demo.sh
+
+      - name: Upload demo metrics
+        uses: actions/upload-artifact@v5
+        with:
+          name: bazel-monty-local-demo-metrics
+          path: |
+            docs/metrics/*.local.json
+            docs/metrics/*.local.log
+          if-no-files-found: error

@@ -14,22 +14,22 @@ run_stage() {
   local config="$3"
   local bep="docs/metrics/${stage}-bep.json"
   local profile="docs/metrics/${stage}-profile.json"
+  local log="docs/metrics/${stage}.log"
+  local cmd="bazelisk test --config=${config} --build_event_json_file=${bep} --profile=${profile} ${TARGETS} 2>&1 | tee ${log}"
 
   echo "==> ${stage}: ${sandbox} with --config=${config}"
   islo use "$sandbox" \
     --source "github://${REPO}" \
     --workdir "/workspace/bazel-monty" \
     --env "USE_BAZEL_VERSION=9.1.1" \
-    -- bazelisk test "--config=${config}" \
-      --build_event_json_file="$bep" \
-      --profile="$profile" \
-      $TARGETS
+    -- bash -lc "$cmd"
 
   islo use "$sandbox" \
     --workdir "/workspace/bazel-monty" \
     -- python3 scripts/collect_bazel_metrics.py \
       --name "$stage" \
       --bep "$bep" \
+      --log "$log" \
       --out "docs/metrics/${stage}.json"
 }
 

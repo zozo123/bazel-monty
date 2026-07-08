@@ -37,8 +37,15 @@ cache/RBE behavior through three Islo sandboxes.
 bazelisk mod tidy
 bazelisk build //:monty_cli
 bazelisk test //...
+./scripts/run_local_demo.sh
 ./scripts/run_islo_demo.sh
 ```
+
+Use `run_local_demo.sh` for the fully self-contained proof. It starts a local
+`bazel-remote` Docker cache, runs a seed build/test with uploads enabled, then
+runs a second build/test from a fresh output base with uploads disabled. Use
+`run_islo_demo.sh` only after `.bazelrc.remote` points at real remote cache/RBE
+endpoints.
 
 ## Remote Config Contract
 
@@ -52,3 +59,10 @@ build:rbe --remote_cache=grpcs://example.cache.endpoint
 
 Use environment variables or provider-specific credential helpers. Do not commit
 tokens, service account JSON, or user-specific paths.
+
+## Finish-Line Status
+
+- Local Bazel build/test: expected to pass.
+- Local remote cache demo: expected to pass with Docker running.
+- Provider remote cache/RBE: wired, but requires `.bazelrc.remote`.
+- GitHub Pages: publishes `docs/` through Actions.

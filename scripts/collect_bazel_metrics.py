@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -51,10 +52,31 @@ def summarize_bep(events: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def summarize_log(path: Path | None) -> dict[str, Any]:
+    if path is None or not path.exists():
+        return {}
+
+    text = path.read_text(errors="replace")
+    remote_cache_lines = [
+        strip_ansi(line).strip()
+        for line in text.splitlines()
+        if "remote cache" in line.lower()
+    ]
+    return {
+        "remote_cache_hit_mentions": len(re.findall(r"remote cache hit", text, flags=re.IGNORECASE)),
+        "remote_cache_lines": remote_cache_lines[-8:],
+    }
+
+
+def strip_ansi(value: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", value)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--name", required=True, help="Run name, e.g. seed")
     parser.add_argument("--bep", required=True, type=Path)
+    parser.add_argument("--log", type=Path)
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
 
@@ -62,6 +84,7 @@ def main() -> None:
     summary = {
         "name": args.name,
         "bep": summarize_bep(read_json_lines(args.bep)),
+        "log": summarize_log(args.log),
     }
     args.out.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
 
