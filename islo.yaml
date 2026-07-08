@@ -1,0 +1,30 @@
+name: bazel-monty
+image: ghcr.io/islo-labs/islo-runner:latest
+cpu: 8
+memory_mb: 16384
+disk_gb: 80
+
+setup_scripts:
+  - name: bazelisk
+    command: |
+      set -euo pipefail
+      if ! command -v bazelisk >/dev/null 2>&1; then
+        mkdir -p "$HOME/bin"
+        curl -fsSL -o "$HOME/bin/bazelisk" "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64"
+        chmod +x "$HOME/bin/bazelisk"
+        echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.profile"
+      fi
+
+profiles:
+  seed:
+    name: bazel-monty-seed
+    env:
+      BAZEL_CONFIG: remote-cache
+  reader:
+    name: bazel-monty-reader
+    env:
+      BAZEL_CONFIG: remote-cache-readonly
+  rbe:
+    name: bazel-monty-rbe
+    env:
+      BAZEL_CONFIG: rbe

@@ -1,0 +1,5 @@
+.bazelrc.remote
+bazel-*
+.DS_Store
+docs/metrics/*.local.json
+*.log

@@ -1,0 +1,11 @@
+exports_files(
+    [
+        "Cargo.lock",
+        "Cargo.toml",
+        "MONTY_COMMIT",
+        "patches/add-bazel-build-files.patch",
+    ] + glob([
+        "crates/**/*.rs",
+        "crates/**/Cargo.toml",
+    ]),
+)

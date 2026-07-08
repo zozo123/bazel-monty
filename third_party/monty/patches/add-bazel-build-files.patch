@@ -1,0 +1,203 @@
+diff --git a/BUILD.bazel b/BUILD.bazel
+new file mode 100644
+index 0000000..39ff8eb
+--- /dev/null
++++ b/BUILD.bazel
+@@ -0,0 +1,183 @@
++load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
++load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_proc_macro", "rust_test")
++
++package(default_visibility = ["//visibility:public"])
++
++MONTY_VERSION = "0.0.18"
++MONTY_EDITION = "2024"
++
++COMMON_RUSTC_ENV = {
++    "CARGO_PKG_VERSION": MONTY_VERSION,
++}
++
++rust_proc_macro(
++    name = "monty_macros",
++    srcs = glob(["crates/monty-macros/src/**/*.rs"]),
++    crate_name = "monty_macros",
++    crate_root = "crates/monty-macros/src/lib.rs",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        "@crates//:proc-macro2",
++        "@crates//:quote",
++        "@crates//:syn",
++    ],
++)
++
++rust_library(
++    name = "monty",
++    srcs = glob(["crates/monty/src/**/*.rs"]),
++    compile_data = ["README.md"],
++    crate_name = "monty",
++    crate_root = "crates/monty/src/lib.rs",
++    edition = MONTY_EDITION,
++    proc_macro_deps = [":monty_macros"],
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        "@crates//:ahash",
++        "@crates//:chrono",
++        "@crates//:fancy-regex",
++        "@crates//:hashbrown",
++        "@crates//:indexmap",
++        "@crates//:itertools",
++        "@crates//:itoa",
++        "@crates//:jiter",
++        "@crates//:libm",
++        "@crates//:num-bigint",
++        "@crates//:num-integer",
++        "@crates//:num-traits",
++        "@crates//:postcard",
++        "@crates//:ruff_python_ast",
++        "@crates//:ruff_python_parser",
++        "@crates//:ruff_python_stdlib",
++        "@crates//:ruff_text_size",
++        "@crates//:serde",
++        "@crates//:smallvec",
++        "@crates//:speedate",
++        "@crates//:strum",
++        "@crates//:unicode-general-category",
++        "@crates//:unicode-normalization",
++        "@crates//:unicode_names2",
++    ],
++)
++
++rust_test(
++    name = "monty_unit_tests",
++    crate = ":monty",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++)
++
++rust_library(
++    name = "monty_proto",
++    srcs = glob(["crates/monty-proto/src/**/*.rs"], exclude = ["crates/monty-proto/src/bin/**"]),
++    crate_name = "monty_proto",
++    crate_root = "crates/monty-proto/src/lib.rs",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        ":monty",
++        "@crates//:num-bigint",
++        "@crates//:prost",
++    ],
++)
++
++rust_test(
++    name = "monty_proto_frame_test",
++    srcs = ["crates/monty-proto/tests/frame.rs"],
++    crate_root = "crates/monty-proto/tests/frame.rs",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        ":monty_proto",
++        "@crates//:prost",
++    ],
++)
++
++cargo_build_script(
++    name = "monty_typeshed_build_rs",
++    srcs = ["crates/monty-typeshed/build.rs"],
++    crate_features = ["deflate"],
++    data = glob(["crates/monty-typeshed/vendor/typeshed/**"]),
++    rundir = "external/+http_archive+monty_src/crates/monty-typeshed",
++    deps = [
++        "@crates//:path-slash",
++        "@crates//:walkdir",
++        "@crates//:zip",
++    ],
++    edition = MONTY_EDITION,
++)
++
++rust_library(
++    name = "monty_typeshed",
++    srcs = glob(["crates/monty-typeshed/src/**/*.rs"]),
++    compile_data = glob(["crates/monty-typeshed/vendor/typeshed/**"]),
++    crate_name = "monty_typeshed",
++    crate_root = "crates/monty-typeshed/src/lib.rs",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        ":monty_typeshed_build_rs",
++        "@crates//:ruff_db",
++        "@crates//:zip",
++    ],
++)
++
++rust_library(
++    name = "monty_type_checking",
++    srcs = glob(["crates/monty-type-checking/src/**/*.rs"]),
++    crate_name = "monty_type_checking",
++    crate_root = "crates/monty-type-checking/src/lib.rs",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        ":monty_typeshed",
++        "@crates//:ruff_db",
++        "@crates//:ruff_python_ast",
++        "@crates//:ruff_text_size",
++        "@crates//:salsa",
++        "@crates//:ty_module_resolver",
++        "@crates//:ty_python_core",
++        "@crates//:ty_python_semantic",
++    ],
++)
++
++rust_library(
++    name = "monty_pool",
++    srcs = glob(["crates/monty-pool/src/**/*.rs"]),
++    crate_name = "monty_pool",
++    crate_root = "crates/monty-pool/src/lib.rs",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        ":monty",
++        ":monty_proto",
++        "@crates//:rustls",
++        "@crates//:tungstenite",
++    ],
++)
++
++rust_binary(
++    name = "monty_cli",
++    srcs = glob(["crates/monty-cli/src/**/*.rs"]),
++    crate_name = "monty_cli",
++    crate_root = "crates/monty-cli/src/main.rs",
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [
++        ":monty",
++        ":monty_proto",
++        ":monty_type_checking",
++        "@crates//:clap",
++        "@crates//:prost",
++        "@crates//:rustyline",
++    ],
++)
++
++rust_test(
++    name = "bazel_monty_smoke_test",
++    srcs = ["bazel/smoke/monty_smoke_test.rs"],
++    edition = MONTY_EDITION,
++    rustc_env = COMMON_RUSTC_ENV,
++    deps = [":monty"],
++)
+diff --git a/bazel/smoke/monty_smoke_test.rs b/bazel/smoke/monty_smoke_test.rs
+new file mode 100644
+index 0000000..d8f597c
+--- /dev/null
++++ b/bazel/smoke/monty_smoke_test.rs
+@@ -0,0 +1,8 @@
++use monty::{MontyObject, MontyRun};
++
++#[test]
++fn bazel_can_run_monty_code() {
++    let runner = MontyRun::new("x + 1".to_owned(), "bazel_smoke.py", vec!["x".to_owned()]).unwrap();
++    let result = runner.run_no_limits(vec![MontyObject::Int(41)]).unwrap();
++    assert_eq!(result.as_ref(), &MontyObject::Int(42));
++}

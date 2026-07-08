@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  bazel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Bazelisk
+        uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+
+      - name: Build Monty CLI
+        run: bazel build //:monty_cli
+
+      - name: Test supported demo targets
+        run: bazel test //:core_tests
+
+      - name: Optional remote cache validation
+        if: ${{ secrets.BAZEL_REMOTE_CACHE != '' }}
+        env:
+          BAZEL_REMOTE_CACHE: ${{ secrets.BAZEL_REMOTE_CACHE }}
+          BAZEL_REMOTE_TOKEN: ${{ secrets.BAZEL_REMOTE_TOKEN }}
+        run: |
+          cat > .bazelrc.remote <<EOF
+          build:remote-cache --remote_cache=${BAZEL_REMOTE_CACHE}
+          build:remote-cache --remote_header=authorization=Bearer ${BAZEL_REMOTE_TOKEN}
+          EOF
+          bazel test --config=remote-cache //:core_tests

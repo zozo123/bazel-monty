@@ -1,0 +1,30 @@
+common --enable_bzlmod
+common --announce_rc
+common --color=yes
+
+build --incompatible_strict_action_env
+build --remote_download_toplevel
+build --experimental_repository_cache_hardlinks
+build --build_event_json_file=docs/metrics/latest-bep.local.json
+build --profile=docs/metrics/latest-profile.local.json
+
+test --test_output=errors
+test --build_tests_only
+
+build:local --remote_cache=
+build:local --remote_executor=
+
+build:remote-cache --remote_upload_local_results=true
+build:remote-cache --remote_timeout=60s
+build:remote-cache --remote_download_toplevel
+
+build:remote-cache-readonly --config=remote-cache
+build:remote-cache-readonly --remote_upload_local_results=false
+
+build:rbe --remote_timeout=120s
+build:rbe --remote_download_outputs=minimal
+build:rbe --jobs=200
+build:rbe --extra_execution_platforms=//platforms:linux_x86_64
+build:rbe --host_platform=//platforms:linux_x86_64
+
+try-import %workspace%/.bazelrc.remote

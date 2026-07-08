@@ -1,0 +1,21 @@
+# Copy this file to `.bazelrc.remote` and fill in provider-specific values.
+# Keep credentials, user paths, and service account material out of git.
+
+# Shared remote cache.
+build:remote-cache --remote_cache=grpcs://cache.example.com
+
+# Common credential patterns. Enable exactly one style for your provider.
+# build:remote-cache --google_default_credentials
+# build:remote-cache --remote_header=x-buildbuddy-api-key=${BUILDBUDDY_API_KEY}
+# build:remote-cache --remote_header=authorization=Bearer ${BAZEL_REMOTE_TOKEN}
+
+# Remote execution. The remote executor normally also provides a cache endpoint.
+build:rbe --remote_executor=grpcs://executor.example.com
+build:rbe --remote_cache=grpcs://cache.example.com
+
+# Example platform properties for providers that route by container image.
+# Adjust to your provider's documented keys.
+# build:rbe --remote_default_exec_properties=container-image=ghcr.io/zozo123/bazel-monty-rbe:latest
+
+# Let CI opt out of uploads for untrusted branches by selecting:
+#   bazel test --config=remote-cache-readonly //...

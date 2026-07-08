@@ -1,0 +1,16 @@
+package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "monty",
+    actual = "@monty_src//:monty",
+)
+
+alias(
+    name = "monty_cli",
+    actual = "@monty_src//:monty_cli",
+)
+
+test_suite(
+    name = "core_tests",
+    tests = ["@monty_src//:bazel_monty_smoke_test"],
+)

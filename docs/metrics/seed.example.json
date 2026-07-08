@@ -1,0 +1,12 @@
+{
+  "bep": {
+    "finished": {},
+    "target_count": 0,
+    "tests": {
+      "failed": 0,
+      "other": 0,
+      "passed": 0
+    }
+  },
+  "name": "seed"
+}

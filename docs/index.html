@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bazel Monty Demo</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="kicker">Bazel 9.1.1 / Rust / Remote Execution</p>
+        <h1>Monty, rebuilt as a Bazel remote build story.</h1>
+        <p class="lede">
+          A pinned upstream <a href="https://github.com/pydantic/monty">pydantic/monty</a>
+          archive, a small Bazel overlay, three Islo sandboxes, and a repeatable
+          path from local build to remote cache to RBE.
+        </p>
+        <div class="actions">
+          <a href="./blog/bazel-monty.html">Read the E2E write-up</a>
+          <a href="https://github.com/zozo123/bazel-monty">View the repo</a>
+        </div>
+      </section>
+
+      <section class="panel grid">
+        <article>
+          <span class="number">01</span>
+          <h2>Pin</h2>
+          <p>Fetch Monty at commit <code>4bcbcf5</code> and apply a reviewable overlay patch.</p>
+        </article>
+        <article>
+          <span class="number">02</span>
+          <h2>Build</h2>
+          <p>Use Bzlmod, <code>rules_rust</code>, and Cargo metadata mirrored under <code>third_party/</code>.</p>
+        </article>
+        <article>
+          <span class="number">03</span>
+          <h2>Prove</h2>
+          <p>Run seed, reader, and RBE stages in isolated Islo sandboxes with JSON metrics.</p>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>Command Spine</h2>
+        <pre><code>bazelisk build //:monty_cli
+bazelisk test //:core_tests
+./scripts/run_islo_demo.sh</code></pre>
+      </section>
+    </main>
+  </body>
+</html>
