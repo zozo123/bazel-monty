@@ -12,8 +12,8 @@ if ! command -v java >/dev/null 2>&1; then
   set +u
   # shellcheck disable=SC1091
   source "$SDKMAN_DIR/bin/sdkman-init.sh"
-  set -u
   sdk install java
+  set -u
 else
   java -version
 fi
