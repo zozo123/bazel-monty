@@ -8,6 +8,9 @@ on:
 jobs:
   bazel:
     runs-on: ubuntu-latest
+    env:
+      BAZEL_REMOTE_CACHE: ${{ secrets.BAZEL_REMOTE_CACHE }}
+      BAZEL_REMOTE_TOKEN: ${{ secrets.BAZEL_REMOTE_TOKEN }}
     steps:
       - uses: actions/checkout@v5
 
@@ -24,10 +27,7 @@ jobs:
         run: bazel test //:core_tests
 
       - name: Optional remote cache validation
-        if: ${{ secrets.BAZEL_REMOTE_CACHE != '' }}
-        env:
-          BAZEL_REMOTE_CACHE: ${{ secrets.BAZEL_REMOTE_CACHE }}
-          BAZEL_REMOTE_TOKEN: ${{ secrets.BAZEL_REMOTE_TOKEN }}
+        if: ${{ env.BAZEL_REMOTE_CACHE != '' }}
         run: |
           cat > .bazelrc.remote <<EOF
           build:remote-cache --remote_cache=${BAZEL_REMOTE_CACHE}
