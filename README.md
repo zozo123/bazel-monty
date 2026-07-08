@@ -85,8 +85,8 @@ Bazelisk and runs the Bazel demo.
   processes, about `57.1%`.
 - Islo CLI sandbox: `//:monty_cli` built in `120.287s` across `1302`
   processes; `//:core_tests` passed in `1.719s`.
-- Latest GitHub CI: success in `5m01s`.
-- Latest GitHub Pages deploy: success in `17s`.
+- Reference GitHub CI run: success in `5m01s`.
+- Reference GitHub Pages deploy: success in `17s`.
 
 The committed machine-readable summary is
 [`docs/metrics/e2e-results.json`](docs/metrics/e2e-results.json).

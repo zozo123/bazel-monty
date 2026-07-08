@@ -2,12 +2,12 @@
   "bazel": "9.1.1",
   "crabbox": "0.36.0",
   "github": {
-    "ci_latest": {
+    "ci_reference": {
       "status": "success",
       "duration": "5m01s",
       "run": "28935428091"
     },
-    "pages_latest": {
+    "pages_reference": {
       "status": "success",
       "duration": "17s",
       "run": "28935428087"
