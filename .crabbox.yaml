@@ -1,0 +1,26 @@
+profile: crabbox-islo
+provider: islo
+target: linux
+
+islo:
+  baseUrl: https://api.islo.dev
+  image: ghcr.io/islo-labs/islo-runner:latest
+  workdir: bazel-monty
+  vcpus: 8
+  memoryMB: 16384
+  diskGB: 80
+
+sync:
+  delete: true
+  fingerprint: true
+  baseRef: main
+  timeout: 15m
+  warnFiles: 50000
+  warnBytes: 5368709120
+  failFiles: 150000
+  failBytes: 21474836480
+  exclude:
+    - bazel-*
+    - docs/metrics/*.local.*
+    - docs/metrics/*.local.log
+    - .DS_Store

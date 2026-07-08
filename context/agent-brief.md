@@ -13,6 +13,7 @@ Make the demo credible end to end:
 - Demonstrate remote cache and remote execution with three Islo sandboxes.
 - Provide a fully runnable local remote-cache proof with Docker and
   `bazel-remote`.
+- Provide a Crabbox `provider=islo` delegated-run path using latest Crabbox.
 - Publish a static GitHub Pages write-up from `docs/`.
 
 ## Critical Files
@@ -24,6 +25,9 @@ Make the demo credible end to end:
   upstream Monty.
 - `scripts/run_islo_demo.sh`: E2E remote-cache/RBE demo.
 - `scripts/run_local_demo.sh`: no-secrets local remote-cache demo.
+- `scripts/run_crabbox_islo_demo.sh`: Crabbox+Islo provider demo.
+- `scripts/bootstrap_bazelisk.sh`: remote bootstrap; installs Java through
+  SDKMAN CI mode if needed and installs Bazelisk.
 - `docs/`: static GitHub Pages source.
 
 ## Useful Checks
@@ -32,6 +36,7 @@ Make the demo credible end to end:
 bazelisk build //:monty_cli
 bazelisk test //:core_tests
 ./scripts/run_local_demo.sh
+./scripts/run_crabbox_islo_demo.sh
 python3 scripts/collect_bazel_metrics.py --name local --bep docs/metrics/latest-bep.local.json --out docs/metrics/local.local.json
 ```
 

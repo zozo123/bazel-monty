@@ -39,6 +39,7 @@ bazelisk build //:monty_cli
 bazelisk test //...
 ./scripts/run_local_demo.sh
 ./scripts/run_islo_demo.sh
+./scripts/run_crabbox_islo_demo.sh
 ```
 
 Use `run_local_demo.sh` for the fully self-contained proof. It starts a local
@@ -46,6 +47,12 @@ Use `run_local_demo.sh` for the fully self-contained proof. It starts a local
 runs a second build/test from a fresh output base with uploads disabled. Use
 `run_islo_demo.sh` only after `.bazelrc.remote` points at real remote cache/RBE
 endpoints.
+
+Use `run_crabbox_islo_demo.sh` for the latest Crabbox provider path. Crabbox
+0.36.0 has a built-in `provider=islo` delegated-run backend. It requires
+`CRABBOX_ISLO_API_KEY` or `ISLO_API_KEY`; Islo CLI login state alone is not
+enough for Crabbox. The remote command calls `scripts/bootstrap_bazelisk.sh`,
+which installs Java through SDKMAN CI mode if needed, then installs Bazelisk.
 
 ## Remote Config Contract
 
@@ -65,4 +72,6 @@ tokens, service account JSON, or user-specific paths.
 - Local Bazel build/test: expected to pass.
 - Local remote cache demo: expected to pass with Docker running.
 - Provider remote cache/RBE: wired, but requires `.bazelrc.remote`.
+- Islo CLI run: wired through `islo.yaml` and `scripts/bootstrap_bazelisk.sh`.
+- Crabbox+Islo run: wired through `.crabbox.yaml`, requires Islo API key.
 - GitHub Pages: publishes `docs/` through Actions.

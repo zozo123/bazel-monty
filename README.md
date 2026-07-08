@@ -54,6 +54,20 @@ For isolated machine-to-machine proof, use Islo:
 ./scripts/run_islo_demo.sh
 ```
 
+For the latest Crabbox flow with Islo as a delegated-run provider:
+
+```bash
+brew upgrade openclaw/tap/crabbox
+export CRABBOX_ISLO_API_KEY=ak_...
+./scripts/run_crabbox_islo_demo.sh
+```
+
+Crabbox `provider=islo` does not use a Crabbox broker or SSH lease. Crabbox
+syncs the repo archive and tracks the run; Islo owns sandbox lifecycle and
+streams command execution. The remote bootstrap uses SDKMAN CI mode to install
+Java when the sandbox image does not already provide a JDK, then installs
+Bazelisk and runs the Bazel demo.
+
 ## What This Shows
 
 - Bazel 9.1.1 + Bzlmod for a Rust workspace that normally builds with Cargo.
@@ -74,6 +88,8 @@ For isolated machine-to-machine proof, use Islo:
   overlay patch.
 - `scripts/run_local_demo.sh` runs the finish-line local remote-cache demo.
 - `scripts/run_islo_demo.sh` runs the three-sandbox provider-backed demo.
+- `scripts/run_crabbox_islo_demo.sh` runs the latest Crabbox delegated Islo
+  provider demo.
 - `context/` is a concise handoff pack for other agents and harnesses.
 - `docs/` is the GitHub Pages source.
 

@@ -1,30 +1,17 @@
-name: bazel-monty
+sandbox: bazel-monty-islo
 image: ghcr.io/islo-labs/islo-runner:latest
 cpu: 8
 memory_mb: 16384
 disk_gb: 80
+workdir: /workspace/bazel-monty
 
 setup_scripts:
-  - name: bazelisk
-    command: |
+  - name: java-and-bazelisk
+    script: |
       set -euo pipefail
-      if ! command -v bazelisk >/dev/null 2>&1; then
-        mkdir -p "$HOME/bin"
-        curl -fsSL -o "$HOME/bin/bazelisk" "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64"
-        chmod +x "$HOME/bin/bazelisk"
-        echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.profile"
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl unzip zip
+        sudo update-ca-certificates
       fi
-
-profiles:
-  seed:
-    name: bazel-monty-seed
-    env:
-      BAZEL_CONFIG: remote-cache
-  reader:
-    name: bazel-monty-reader
-    env:
-      BAZEL_CONFIG: remote-cache-readonly
-  rbe:
-    name: bazel-monty-rbe
-    env:
-      BAZEL_CONFIG: rbe
+      ./scripts/bootstrap_bazelisk.sh

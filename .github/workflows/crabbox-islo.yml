@@ -1,0 +1,39 @@
+name: Crabbox Islo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  crabbox-islo:
+    runs-on: macos-latest
+    env:
+      CRABBOX_ISLO_API_KEY: ${{ secrets.CRABBOX_ISLO_API_KEY }}
+      CRABBOX_ISLO_IMAGE: ghcr.io/islo-labs/islo-runner:latest
+      CRABBOX_ISLO_VCPUS: "8"
+      CRABBOX_ISLO_MEMORY_MB: "16384"
+      CRABBOX_ISLO_DISK_GB: "80"
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Crabbox
+        run: |
+          brew tap openclaw/tap
+          brew install openclaw/tap/crabbox
+          crabbox --version
+
+      - name: Run Crabbox with Islo provider
+        if: ${{ env.CRABBOX_ISLO_API_KEY != '' }}
+        run: ./scripts/run_crabbox_islo_demo.sh
+
+      - name: Explain skipped run
+        if: ${{ env.CRABBOX_ISLO_API_KEY == '' }}
+        run: |
+          echo "Set repository secret CRABBOX_ISLO_API_KEY to run the live Crabbox+Islo demo."
+
+      - name: Upload Crabbox logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crabbox-islo-logs
+          path: docs/metrics/crabbox-islo.local.log
+          if-no-files-found: ignore

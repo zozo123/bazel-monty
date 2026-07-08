@@ -73,6 +73,22 @@ bazelisk test //:core_tests</code></pre>
       </ol>
       <pre><code>./scripts/run_islo_demo.sh</code></pre>
 
+      <h2>Crabbox with Islo</h2>
+      <p>
+        The latest Crabbox has a built-in <code>provider=islo</code> backend.
+        It is a delegated-run provider: Crabbox owns repo sync, claims, run
+        metadata, and normalized status; Islo owns Linux sandbox lifecycle and
+        streaming command execution. No Crabbox broker is involved.
+      </p>
+      <pre><code>brew upgrade openclaw/tap/crabbox
+export CRABBOX_ISLO_API_KEY=ak_...
+./scripts/run_crabbox_islo_demo.sh</code></pre>
+      <p>
+        The remote command calls <code>scripts/bootstrap_bazelisk.sh</code>.
+        That bootstrap installs Java through SDKMAN CI mode when the image has
+        no JDK, then installs Bazelisk and runs the Bazel build/test targets.
+      </p>
+
       <h2>Live references</h2>
       <p>
         Version and flag checks are grounded in
