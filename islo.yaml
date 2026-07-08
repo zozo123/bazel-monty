@@ -6,7 +6,7 @@ disk_gb: 80
 workdir: /workspace/bazel-monty
 
 setup_scripts:
-  - name: java-and-bazelisk
+  - name: os-bootstrap
     script: |
       set -euo pipefail
       if command -v apt-get >/dev/null 2>&1; then
@@ -14,4 +14,3 @@ setup_scripts:
         sudo apt-get install -y ca-certificates curl unzip zip
         sudo update-ca-certificates
       fi
-      ./scripts/bootstrap_bazelisk.sh

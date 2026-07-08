@@ -9,8 +9,10 @@ SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
 if ! command -v java >/dev/null 2>&1; then
   echo "Installing Java with SDKMAN"
   curl -s "https://get.sdkman.io?ci=true&rcupdate=false" | bash
+  set +u
   # shellcheck disable=SC1091
   source "$SDKMAN_DIR/bin/sdkman-init.sh"
+  set -u
   sdk install java
 else
   java -version
