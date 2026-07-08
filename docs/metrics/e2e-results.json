@@ -1,0 +1,53 @@
+{
+  "bazel": "9.1.1",
+  "crabbox": "0.36.0",
+  "github": {
+    "ci_latest": {
+      "status": "success",
+      "duration": "5m01s",
+      "run": "28935428091"
+    },
+    "pages_latest": {
+      "status": "success",
+      "duration": "17s",
+      "run": "28935428087"
+    }
+  },
+  "islo_cli": {
+    "status": "success",
+    "sandbox": "bazel-monty-islo",
+    "cleanup": "deleted after run",
+    "build": {
+      "target": "//:monty_cli",
+      "duration": "120.287s",
+      "processes": 1302
+    },
+    "test": {
+      "target": "//:core_tests",
+      "duration": "1.719s",
+      "passed": 1
+    }
+  },
+  "local_remote_cache": {
+    "cache": "bazel-remote via quay.io/bazel-remote/bazel-remote",
+    "seed": {
+      "duration": "121.135s",
+      "processes": 756,
+      "remote_cache_hits": 0,
+      "passed": 1
+    },
+    "reader": {
+      "duration": "15.706s",
+      "processes": 756,
+      "remote_cache_hits": 432,
+      "remote_cache_hit_ratio": "57.1%",
+      "passed": 1,
+      "upload_local_results": false
+    }
+  },
+  "notes": [
+    "The local reader run used a fresh Bazel output base, so cache hits came from bazel-remote rather than local state.",
+    "Islo CLI was authenticated and used for the live sandbox run.",
+    "Crabbox provider=islo is wired and documented; a live Crabbox run requires CRABBOX_ISLO_API_KEY or ISLO_API_KEY."
+  ]
+}

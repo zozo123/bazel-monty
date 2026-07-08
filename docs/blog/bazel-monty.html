@@ -37,6 +37,26 @@ bazelisk test //:core_tests</code></pre>
         changing one commit pin and refreshing one patch.
       </p>
 
+      <h2>Measured E2E results</h2>
+      <p>
+        The final run used Bazel <code>9.1.1</code>, Crabbox <code>0.36.0</code>,
+        and the pinned Monty commit above. The local cache proof used a fresh
+        <code>bazel-remote</code> instance and fresh Bazel output bases for both
+        stages.
+      </p>
+      <ul>
+        <li><strong>Local seed:</strong> 121.135s, 756 processes, 1 test passed, 0 remote cache hits.</li>
+        <li><strong>Local readonly reader:</strong> 15.706s, 756 processes, 432 remote cache hits, 1 cached test passed.</li>
+        <li><strong>Cache hit ratio:</strong> 432 / 756 actions, about 57.1% of the second run.</li>
+        <li><strong>Islo CLI sandbox:</strong> <code>//:monty_cli</code> built in 120.287s across 1302 processes; <code>//:core_tests</code> passed in 1.719s.</li>
+        <li><strong>GitHub CI:</strong> latest push passed in 5m01s.</li>
+        <li><strong>GitHub Pages:</strong> latest deploy passed in 17s.</li>
+      </ul>
+      <p>
+        The committed summary is available as
+        <a href="../metrics/e2e-results.json"><code>docs/metrics/e2e-results.json</code></a>.
+      </p>
+
       <h2>Fully local remote cache</h2>
       <p>
         The finish-line demo needs no private service. It starts
@@ -106,12 +126,39 @@ export CRABBOX_ISLO_API_KEY=ak_...
         generate richer ignored metrics with cache-log evidence.
       </p>
       <div class="metric-links">
+        <a href="../metrics/e2e-results.json">e2e results</a>
         <a href="../metrics/local-seed.example.json">local seed</a>
         <a href="../metrics/local-reader.example.json">local reader</a>
         <a href="../metrics/seed.example.json">seed</a>
         <a href="../metrics/reader.example.json">reader</a>
         <a href="../metrics/rbe.example.json">rbe</a>
       </div>
+
+      <h2>What worked and what changed</h2>
+      <p>
+        The core Bazel overlay worked after fixing two rules_rust details:
+        proc macros belong in <code>proc_macro_deps</code>, and
+        <code>monty-typeshed</code> needs its Cargo build script to run from the
+        crate directory. The local remote-cache proof worked once the demo used
+        unique output bases per invocation instead of deleting Bazel trees with
+        read-only generated files.
+      </p>
+      <p>
+        Islo worked as the remote Linux runner, but its gateway presents an
+        <code>Islo Gateway CA</code> certificate to Bazel Central Registry
+        traffic. Curl trusted the system store; Bazel's embedded JVM did not.
+        The final bootstrap installs Java with SDKMAN CI mode, imports
+        <code>/etc/ssl/certs/islo-ca.pem</code> into the SDKMAN Java trust store,
+        and runs Bazel with that trust store. SDKMAN also required temporarily
+        disabling <code>set -u</code>, and its global <code>VERSION</code>
+        variable forced the bootstrap to rename its Bazel version variable.
+      </p>
+      <p>
+        Crabbox <code>provider=islo</code> is wired and uses Islo as a delegated
+        provider. It requires <code>CRABBOX_ISLO_API_KEY</code> or
+        <code>ISLO_API_KEY</code>; Islo CLI login alone does not authenticate
+        Crabbox runs.
+      </p>
     </main>
   </body>
 </html>
