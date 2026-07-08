@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${USE_BAZEL_VERSION:-9.1.1}"
+BAZEL_VERSION="${USE_BAZEL_VERSION:-9.1.1}"
 INSTALL_DIR="${BAZELISK_INSTALL_DIR:-$HOME/.local/bin}"
 BIN="$INSTALL_DIR/bazelisk"
 SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
@@ -33,9 +33,9 @@ esac
 
 mkdir -p "$INSTALL_DIR"
 url="https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-${os}-${arch}"
-echo "Installing Bazelisk for Bazel ${VERSION} from ${url}"
+echo "Installing Bazelisk for Bazel ${BAZEL_VERSION} from ${url}"
 curl -fsSL "$url" -o "$BIN"
 chmod +x "$BIN"
 export PATH="$INSTALL_DIR:$PATH"
-export USE_BAZEL_VERSION="$VERSION"
+export USE_BAZEL_VERSION="$BAZEL_VERSION"
 bazelisk --version
