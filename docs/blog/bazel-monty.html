@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Bazel Monty: Remote Builds For A Rust Python Interpreter</title>
+    <meta
+      name="description"
+      content="Bazelizing pydantic/monty without owning a fork: measured E2E numbers for local remote cache (121.1s cold, 15.7s fully cached, all 432 executable actions from cache), Islo sandbox builds, and RBE wiring."
+    />
     <link rel="stylesheet" href="../style.css" />
   </head>
   <body>
@@ -12,12 +16,99 @@
       <p class="kicker">End-to-end demo</p>
       <h1>Bazelizing Monty without owning a fork.</h1>
       <p class="lede">
-        Monty is a minimal Python interpreter written in Rust. The demo keeps
-        upstream source immutable, overlays Bazel build files, and then uses
-        remote cache and remote execution to prove the graph can move between
-        machines. The first proof is fully local. The second proof uses Islo and
-        a real provider-backed cache/RBE endpoint.
+        Monty is a minimal Python interpreter written in Rust, from the
+        Pydantic team. The demo keeps upstream source immutable, overlays Bazel
+        build files, and then uses remote cache and remote execution (RBE) to
+        show the build graph can move between machines. The first proof is
+        fully local, using Docker only. The second uses Islo — Incredibuild's
+        cloud sandbox service — with a real provider-backed cache and RBE
+        endpoint. Disclosure: this demo was built at Incredibuild. The most
+        instructive failures — Bazel's embedded JVM distrusting a gateway CA,
+        and SDKMAN's global <code>VERSION</code> variable — are covered at the
+        end.
       </p>
+
+      <h2>The numbers</h2>
+      <p>
+        The final run used Bazel <code>9.1.1</code>, Crabbox <code>0.36.0</code>
+        (a CLI that delegates runs to remote sandbox providers), and Monty
+        pinned at <code>4bcbcf5</code>. The local cache demo used a fresh
+        <code>bazel-remote</code> instance in Docker and a fresh Bazel output
+        base for each stage, so nothing could leak from local state. Both cache
+        stages ran with <code>--remote_download_toplevel</code>.
+      </p>
+      <div class="table-scroll">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th>Wall time</th>
+              <th>Processes</th>
+              <th>Remote cache hits</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Local seed</b> (cold cache)</td>
+              <td><code>121.135s</code></td>
+              <td>756</td>
+              <td>0</td>
+              <td>1 test passed</td>
+            </tr>
+            <tr>
+              <td><b>Local reader</b> (readonly cache)</td>
+              <td><code>15.706s</code></td>
+              <td>756</td>
+              <td>432 / 432 executable</td>
+              <td>1 cached test passed</td>
+            </tr>
+            <tr>
+              <td><b>Islo sandbox</b> build <code>//:monty_cli</code></td>
+              <td><code>120.287s</code></td>
+              <td>1302</td>
+              <td>—</td>
+              <td>success</td>
+            </tr>
+            <tr>
+              <td><b>Islo sandbox</b> test <code>//:core_tests</code></td>
+              <td><code>1.719s</code></td>
+              <td>—</td>
+              <td>—</td>
+              <td>1 test passed</td>
+            </tr>
+            <tr>
+              <td><b>GitHub CI</b> (reference push)</td>
+              <td><code>5m01s</code></td>
+              <td>—</td>
+              <td>—</td>
+              <td>success</td>
+            </tr>
+            <tr>
+              <td><b>GitHub Pages</b> deploy</td>
+              <td><code>17s</code></td>
+              <td>—</td>
+              <td>—</td>
+              <td>success</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The reader run finished in <strong>15.706s</strong> against
+        <strong>121.135s</strong> cold. The honest reading: the seed run
+        executed 432 sandboxed actions; on the reader run <strong>all 432</strong>
+        came back as remote cache hits and zero actions re-executed — even the
+        test result was served from cache. The remaining 325 processes in both
+        runs are Bazel-internal bookkeeping, which is never cacheable, and the
+        residual 15.7s is analysis plus fetching top-level outputs under
+        <code>--remote_download_toplevel</code>. So the comparison measures
+        what a remote cache absorbs on a full rebuild, not compiler speed. The
+        committed summary is
+        <a href="../metrics/e2e-results.json"><code>docs/metrics/e2e-results.json</code></a>;
+        the reader run's cache line, as logged by Bazel, was:
+      </p>
+      <pre><code>INFO: 756 processes: 432 remote cache hit, 325 internal.</code></pre>
 
       <h2>The build contract</h2>
       <p>
@@ -37,29 +128,9 @@ bazelisk test //:core_tests</code></pre>
         changing one commit pin and refreshing one patch.
       </p>
 
-      <h2>Measured E2E results</h2>
-      <p>
-        The final run used Bazel <code>9.1.1</code>, Crabbox <code>0.36.0</code>,
-        and the pinned Monty commit above. The local cache proof used a fresh
-        <code>bazel-remote</code> instance and fresh Bazel output bases for both
-        stages.
-      </p>
-      <ul>
-        <li><strong>Local seed:</strong> 121.135s, 756 processes, 1 test passed, 0 remote cache hits.</li>
-        <li><strong>Local readonly reader:</strong> 15.706s, 756 processes, 432 remote cache hits, 1 cached test passed.</li>
-        <li><strong>Cache hit ratio:</strong> 432 / 756 actions, about 57.1% of the second run.</li>
-        <li><strong>Islo CLI sandbox:</strong> <code>//:monty_cli</code> built in 120.287s across 1302 processes; <code>//:core_tests</code> passed in 1.719s.</li>
-        <li><strong>GitHub CI:</strong> reference push passed in 5m01s.</li>
-        <li><strong>GitHub Pages:</strong> reference deploy passed in 17s.</li>
-      </ul>
-      <p>
-        The committed summary is available as
-        <a href="../metrics/e2e-results.json"><code>docs/metrics/e2e-results.json</code></a>.
-      </p>
-
       <h2>Fully local remote cache</h2>
       <p>
-        The finish-line demo needs no private service. It starts
+        The local demo needs no private service. It starts
         <code>bazel-remote</code> in Docker, seeds the cache from one fresh Bazel
         output base, then reads from that cache using a second fresh output base.
         That makes the cache behavior visible without relying on local action
@@ -80,9 +151,12 @@ bazelisk test //:core_tests</code></pre>
 
       <h2>Provider cache and RBE</h2>
       <p>
-        Islo gives the demo clean machines. Bazel still talks to normal REAPI
-        endpoints through <code>--remote_cache</code> and
-        <code>--remote_executor</code>. Copy
+        Islo gives the demo clean machines. Bazel still talks to standard
+        Remote Execution API (REAPI) endpoints through
+        <code>--remote_cache</code> and <code>--remote_executor</code> — the
+        same flags described in the
+        <a href="https://bazel.build/remote/caching">Bazel remote caching docs</a>.
+        Copy
         <code>.bazelrc.remote.example</code> to <code>.bazelrc.remote</code>,
         fill in provider details, then run the three-sandbox flow:
       </p>
@@ -107,16 +181,6 @@ export CRABBOX_ISLO_API_KEY=ak_...
         The remote command calls <code>scripts/bootstrap_bazelisk.sh</code>.
         That bootstrap installs Java through SDKMAN CI mode when the image has
         no JDK, then installs Bazelisk and runs the Bazel build/test targets.
-      </p>
-
-      <h2>Live references</h2>
-      <p>
-        Version and flag checks are grounded in
-        <a href="https://registry.build/">registry.build</a>. For this demo, it
-        confirms current Bazel and rule releases, and exposes Bazel 9 remote
-        flags such as <code>--remote_cache</code>,
-        <code>--remote_executor</code>, <code>--credential_helper</code>, and
-        <code>--remote_download_outputs</code>.
       </p>
 
       <h2>Metrics</h2>

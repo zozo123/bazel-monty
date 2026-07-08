@@ -3,30 +3,95 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bazel Monty Demo</title>
+    <title>Bazel Monty Demo — 121s cold build, 15.7s fully cached</title>
+    <meta
+      name="description"
+      content="Bazelizing pydantic/monty (a Python interpreter in Rust) without a fork: pinned upstream archive, rules_rust overlay, and a measured remote-cache proof — 121.1s cold, 15.7s fully cached, all 432 executable actions served from cache."
+    />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <main class="shell">
       <section class="hero">
-        <p class="kicker">Bazel 9.1.1 / Rust / Remote Execution</p>
-        <h1>Monty, rebuilt as a Bazel remote build story.</h1>
+        <p class="kicker">Bazel 9.1.1 / rules_rust / Remote Cache / Remote Execution</p>
+        <h1>Monty, rebuilt as a Bazel remote build.</h1>
         <p class="lede">
-          A pinned upstream <a href="https://github.com/pydantic/monty">pydantic/monty</a>
-          archive, a small Bazel overlay, three Islo sandboxes, and a repeatable
-          path from local build to remote cache to RBE.
+          <a href="https://github.com/pydantic/monty">Monty</a> is a minimal
+          Python interpreter written in Rust, from the Pydantic team. This demo
+          Bazelizes a pinned upstream archive with a small patch overlay — no
+          fork — and takes it from local build to remote cache to remote
+          execution. Every number below is committed as JSON, with the scripts
+          to reproduce it.
+        </p>
+        <p class="headline-metric">
+          121.1s → <span class="fast">15.7s</span><span class="factor">same build, fully cached</span>
         </p>
         <div class="actions">
           <a href="./blog/bazel-monty.html">Read the E2E write-up</a>
+          <a href="./metrics/e2e-results.json">Raw numbers (JSON)</a>
           <a href="https://github.com/zozo123/bazel-monty">View the repo</a>
         </div>
+      </section>
+
+      <section class="panel">
+        <h2>Measured, not estimated</h2>
+        <p>
+          Two fresh Bazel output bases against one <code>bazel-remote</code>
+          instance in Docker. The seed run populates the cache; the reader run
+          consumes it with uploads disabled. No local action cache involved.
+          To be precise about what is measured: this compares a cold full build
+          (with cache upload) to a fully cached rerun of the same targets —
+          both with <code>--remote_download_toplevel</code>.
+        </p>
+        <div class="stats">
+          <article class="stat">
+            <b>121.135s</b>
+            <span>Cold seed run — build + test, 756 processes, 0 remote cache hits.</span>
+          </article>
+          <article class="stat">
+            <b>15.706s</b>
+            <span>Reader run — same targets, fresh output base, uploads disabled.</span>
+          </article>
+          <article class="stat">
+            <b>432 / 432</b>
+            <span>Every executable action on the reader run came from the remote cache. The other 325 processes are Bazel-internal and never cacheable.</span>
+          </article>
+          <article class="stat">
+            <b>120.287s</b>
+            <span>Clean Islo sandbox build of <code>//:monty_cli</code>, 1302 processes.</span>
+          </article>
+          <article class="stat">
+            <b>1.719s</b>
+            <span><code>//:core_tests</code> pass in the Islo sandbox run.</span>
+          </article>
+          <article class="stat">
+            <b>5m01s / 17s</b>
+            <span>Reference GitHub CI run and GitHub Pages deploy, both green.</span>
+          </article>
+        </div>
+        <div class="bars">
+          <div class="bar-row">
+            <div class="bar-label"><span>seed (cold cache)</span><b>121.135s</b></div>
+            <div class="bar-track"><div class="bar-fill cold" style="width: 100%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label"><span>reader (warm cache)</span><b>15.706s</b></div>
+            <div class="bar-track"><div class="bar-fill" style="width: 13%"></div></div>
+          </div>
+        </div>
+        <p class="fineprint">
+          Bazel 9.1.1, Crabbox 0.36.0, Monty pinned at <code>4bcbcf5</code>.
+          Islo is Incredibuild's cloud sandbox service; this demo is an
+          Incredibuild project. Full summary in
+          <a href="./metrics/e2e-results.json"><code>docs/metrics/e2e-results.json</code></a>.
+        </p>
       </section>
 
       <section class="panel grid">
         <article>
           <span class="number">01</span>
           <h2>Pin</h2>
-          <p>Fetch Monty at commit <code>4bcbcf5</code> and apply a reviewable overlay patch.</p>
+          <p>Fetch Monty at commit <code>4bcbcf5</code> and apply a reviewable overlay patch — no fork.</p>
         </article>
         <article>
           <span class="number">02</span>
@@ -36,12 +101,12 @@
         <article>
           <span class="number">03</span>
           <h2>Prove</h2>
-          <p>Run local seed/reader cache stages now, then provider RBE stages in Islo when endpoints are configured.</p>
+          <p>Run the local seed/reader cache demo with Docker, then provider cache and remote-execution stages in Islo sandboxes.</p>
         </article>
       </section>
 
       <section class="panel">
-        <h2>Command Spine</h2>
+        <h2>Commands</h2>
         <pre><code>bazelisk build //:monty_cli
 bazelisk test //:core_tests
 ./scripts/run_local_demo.sh

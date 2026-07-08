@@ -33,16 +33,22 @@
     "seed": {
       "duration": "121.135s",
       "processes": 756,
+      "executable_actions": 432,
+      "internal_processes": 325,
       "remote_cache_hits": 0,
       "passed": 1
     },
     "reader": {
       "duration": "15.706s",
       "processes": 756,
+      "executable_actions": 432,
+      "internal_processes": 325,
       "remote_cache_hits": 432,
-      "remote_cache_hit_ratio": "57.1%",
+      "remote_cache_hit_ratio": "100% of executable actions (432/432); internal processes are not cacheable",
+      "actions_reexecuted": 0,
       "passed": 1,
-      "upload_local_results": false
+      "upload_local_results": false,
+      "remote_download": "toplevel"
     }
   },
   "notes": [
