@@ -255,7 +255,13 @@ nav {
 }
 
 .bar-fill.cold {
+  width: 100%;
   background: linear-gradient(90deg, #4a5a4a, #74856f);
+}
+
+/* reader / seed wall time: 15.706s / 121.135s */
+.bar-fill.warm {
+  width: 13%;
 }
 
 .fineprint {

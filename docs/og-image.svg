@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Share card source. Render: rsvg-convert -w 1200 -h 630 docs/og-image.svg -o docs/og-image.png -->
+  <defs>
+    <radialGradient id="glow" cx="0.12" cy="0" r="0.75">
+      <stop offset="0" stop-color="#76d275" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#76d275" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fast" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#43a047"/>
+      <stop offset="1" stop-color="#76d275"/>
+    </linearGradient>
+    <linearGradient id="cold" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#4a5a4a"/>
+      <stop offset="1" stop-color="#74856f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0b100c"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Bazel-style hexagon outline, top right -->
+  <g fill="none" stroke="#1f3322" stroke-width="5" stroke-linejoin="round">
+    <path d="M1048 -40 L1196 30 L1196 170 L1120 246 L972 176 L972 36 Z"/>
+    <path d="M972 36 L1048 106 L1196 30"/>
+    <path d="M1048 106 L1048 246"/>
+    <path d="M972 176 L1048 246 L1120 246"/>
+  </g>
+
+  <text x="72" y="83" fill="#cddc39" font-family="'SF Mono', '.SF NS Mono', Menlo, monospace" font-size="20" letter-spacing="2.8">BAZEL 9.1.1 / RULES_RUST / REMOTE CACHE</text>
+
+  <g font-family="'New York', '.New York', Georgia, serif" font-weight="800" font-size="82" letter-spacing="-2.5">
+    <text x="70" y="176" fill="#ecf3e8">Monty, rebuilt as a</text>
+    <text x="70" y="248" fill="#ecf3e8">Bazel remote build.</text>
+    <text x="70" y="330" fill="#a9bba5">No fork.</text>
+  </g>
+
+  <text x="72" y="414" font-family="'SF Mono', '.SF NS Mono', Menlo, monospace" font-weight="700" font-size="74" letter-spacing="-1"><tspan fill="#ecf3e8">121.1s</tspan><tspan fill="#a9bba5" font-size="44" dx="26" dy="-10">→</tspan><tspan fill="#76d275" font-size="74" dx="26" dy="10">15.7s</tspan></text>
+
+  <text x="72" y="468" font-family="'SF Mono', '.SF NS Mono', Menlo, monospace" font-size="23" fill="#a9bba5"><tspan fill="#cddc39" font-weight="700">432 / 432</tspan> executable actions served from the remote cache · 0 re-executed</text>
+
+  <rect x="72" y="498" width="640" height="14" rx="7" fill="url(#cold)"/>
+  <rect x="72" y="524" width="640" height="14" rx="7" fill="#080c09" stroke="#2d3c2e" stroke-width="1"/>
+  <rect x="72" y="524" width="84" height="14" rx="7" fill="url(#fast)"/>
+
+  <line x1="72" y1="552.5" x2="1128" y2="552.5" stroke="#2d3c2e" stroke-width="1"/>
+
+  <text x="72" y="588" font-family="'SF Mono', '.SF NS Mono', Menlo, monospace" font-size="20" fill="#a9bba5">pydantic/monty · Yossi Eliaz</text>
+  <text x="1128" y="588" text-anchor="end" font-family="'SF Mono', '.SF NS Mono', Menlo, monospace" font-size="20" fill="#76d275">zozo123.github.io/bazel-monty</text>
+</svg>

@@ -1,22 +1,45 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bazel Monty: Remote Builds For A Rust Python Interpreter</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bazelizing Monty without owning a fork · Yossi Eliaz</title>
     <meta
       name="description"
-      content="Bazelizing pydantic/monty without owning a fork: measured E2E numbers for local remote cache (121.1s cold, 15.7s fully cached, all 432 executable actions from cache), Islo sandbox builds, and RBE wiring."
-    />
-    <meta property="og:type" content="article" />
-    <meta property="og:title" content="Bazelizing Monty without owning a fork" />
-    <meta property="og:description" content="121.1s cold build, 15.7s fully cached — all 432 executable actions served from the remote cache. Measured, committed as JSON, reproducible with Docker." />
-    <meta property="og:url" content="https://zozo123.github.io/bazel-monty/blog/bazel-monty.html" />
-    <meta property="og:image" content="https://zozo123.github.io/bazel-monty/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="../style.css" />
+      content="Bazelizing pydantic/monty with no fork: a measured remote cache (121.1s cold, 15.7s fully cached, 432/432 actions from cache) plus an Islo sandbox build."
+    >
+    <meta name="author" content="Yossi Eliaz">
+    <link rel="canonical" href="https://zozo123.github.io/bazel-monty/blog/bazel-monty.html">
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Bazelizing Monty without owning a fork">
+    <meta property="og:description" content="121.1s cold build, 15.7s fully cached — all 432 executable actions served from the remote cache. Measured, committed as JSON, reproducible with Docker.">
+    <meta property="og:url" content="https://zozo123.github.io/bazel-monty/blog/bazel-monty.html">
+    <meta property="og:image" content="https://zozo123.github.io/bazel-monty/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Monty, rebuilt as a Bazel remote build. No fork. 121.1s cold, 15.7s fully cached. Yossi Eliaz.">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="../style.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Bazelizing Monty without owning a fork",
+        "description": "Bazelizing pydantic/monty with no fork: a measured remote cache (121.1s cold, 15.7s fully cached, 432/432 actions from cache) plus an Islo sandbox build.",
+        "url": "https://zozo123.github.io/bazel-monty/blog/bazel-monty.html",
+        "mainEntityOfPage": "https://zozo123.github.io/bazel-monty/blog/bazel-monty.html",
+        "image": "https://zozo123.github.io/bazel-monty/og-image.png",
+        "datePublished": "2026-07-08",
+        "about": "https://github.com/pydantic/monty",
+        "author": {
+          "@type": "Person",
+          "name": "Yossi Eliaz",
+          "url": "https://yossieliaz.netlify.app/",
+          "sameAs": ["https://github.com/zozo123", "https://www.linkedin.com/in/yossi-eliaz/"]
+        }
+      }
+    </script>
   </head>
   <body>
     <main class="article">
@@ -24,24 +47,28 @@
       <p class="kicker">End-to-end demo</p>
       <h1>Bazelizing Monty without owning a fork.</h1>
       <p class="lede">
-        Monty is a minimal Python interpreter written in Rust, from the
-        Pydantic team. The demo keeps upstream source immutable, overlays Bazel
-        build files, and then uses remote cache and remote execution (RBE) to
-        show the build graph can move between machines. The first proof is
-        fully local, using Docker only. The second uses Islo — Incredibuild's
-        cloud sandbox service — with a real provider-backed cache and RBE
-        endpoint. Disclosure: this demo was built at Incredibuild. The most
-        instructive failures — Bazel's embedded JVM distrusting a gateway CA,
+        <a href="https://github.com/pydantic/monty">Monty</a> is a minimal
+        Python interpreter written in Rust, from the Pydantic team. The demo keeps upstream source immutable, overlays Bazel
+        build files, and then uses a remote cache to show the build graph can
+        move between machines. The measured proof is fully local, using Docker
+        only. A second run built and tested the same targets in an Islo
+        sandbox (Islo is Incredibuild's cloud sandbox service); the provider
+        cache and remote execution (RBE) stages are scripted but have no
+        committed results yet. Disclosure: this demo was built at Incredibuild.
+        The most instructive failures — Bazel's embedded JVM distrusting a gateway CA,
         and SDKMAN's global <code>VERSION</code> variable — are covered at the
         end.
       </p>
 
       <h2>The numbers</h2>
       <p>
-        The final run used Bazel <code>9.1.1</code>, Crabbox <code>0.36.0</code>
-        (a CLI that delegates runs to remote sandbox providers), and Monty
-        pinned at <code>4bcbcf5</code>. The local cache demo used a fresh
-        <code>bazel-remote</code> instance in Docker and a fresh Bazel output
+        The final run used Bazel <code>9.1.1</code>,
+        <a href="https://github.com/openclaw/crabbox">Crabbox</a>
+        <code>0.36.0</code> (openclaw/crabbox, a CLI that delegates runs to
+        remote sandbox providers), and Monty pinned at <code>4bcbcf5</code>.
+        The local cache demo used a fresh
+        <a href="https://github.com/buchgr/bazel-remote"><code>bazel-remote</code></a>
+        instance in Docker and a fresh Bazel output
         base for each stage, so nothing could leak from local state. Both cache
         stages ran with <code>--remote_download_toplevel</code>.
       </p>
@@ -139,7 +166,8 @@ bazelisk test //:core_tests</code></pre>
       <h2>Fully local remote cache</h2>
       <p>
         The local demo needs no private service. It starts
-        <code>bazel-remote</code> in Docker, seeds the cache from one fresh Bazel
+        <a href="https://github.com/buchgr/bazel-remote"><code>bazel-remote</code></a>
+        in Docker, seeds the cache from one fresh Bazel
         output base, then reads from that cache using a second fresh output base.
         That makes the cache behavior visible without relying on local action
         cache state.
@@ -166,7 +194,9 @@ bazelisk test //:core_tests</code></pre>
         <a href="https://bazel.build/remote/caching">Bazel remote caching docs</a>.
         Copy
         <code>.bazelrc.remote.example</code> to <code>.bazelrc.remote</code>,
-        fill in provider details, then run the three-sandbox flow:
+        fill in provider details, then run the three-sandbox flow. These
+        stages are scripted but not yet measured; no provider seed, reader, or
+        RBE results are committed.
       </p>
       <ol>
         <li><strong>seed</strong>: build and test with cache upload enabled.</li>
@@ -177,7 +207,8 @@ bazelisk test //:core_tests</code></pre>
 
       <h2>Crabbox with Islo</h2>
       <p>
-        The latest Crabbox has a built-in <code>provider=islo</code> backend.
+        The latest <a href="https://github.com/openclaw/crabbox">Crabbox</a>
+        (openclaw/crabbox) has a built-in <code>provider=islo</code> backend.
         It is a delegated-run provider: Crabbox owns repo sync, claims, run
         metadata, and normalized status; Islo owns Linux sandbox lifecycle and
         streaming command execution. No Crabbox broker is involved.
@@ -198,12 +229,12 @@ export CRABBOX_ISLO_API_KEY=ak_...
         generate richer ignored metrics with cache-log evidence.
       </p>
       <div class="metric-links">
-        <a href="../metrics/e2e-results.json">e2e results</a>
-        <a href="../metrics/local-seed.example.json">local seed</a>
-        <a href="../metrics/local-reader.example.json">local reader</a>
-        <a href="../metrics/seed.example.json">seed</a>
-        <a href="../metrics/reader.example.json">reader</a>
-        <a href="../metrics/rbe.example.json">rbe</a>
+        <a href="../metrics/e2e-results.json">e2e results (measured)</a>
+        <a href="../metrics/local-seed.example.json">local seed (placeholder example)</a>
+        <a href="../metrics/local-reader.example.json">local reader (placeholder example)</a>
+        <a href="../metrics/seed.example.json">seed (placeholder example)</a>
+        <a href="../metrics/reader.example.json">reader (placeholder example)</a>
+        <a href="../metrics/rbe.example.json">rbe (placeholder example)</a>
       </div>
 
       <h2>What worked and what changed</h2>
@@ -231,6 +262,13 @@ export CRABBOX_ISLO_API_KEY=ak_...
         <code>ISLO_API_KEY</code>; Islo CLI login alone does not authenticate
         Crabbox runs.
       </p>
+
+      <footer class="panel fineprint">
+        By <a href="https://zozo123.github.io/">Yossi Eliaz</a> ·
+        <time datetime="2026-07-08">July 2026</time> ·
+        <a href="https://yossieliaz.netlify.app/">About</a> ·
+        <a href="https://github.com/zozo123/bazel-monty">Source</a>
+      </footer>
     </main>
   </body>
 </html>

@@ -1,12 +1,12 @@
 # Bazel Monty Demo
 
-Standalone Bazel demo for building a pinned snapshot of
-[pydantic/monty](https://github.com/pydantic/monty) with Bzlmod, remote cache,
-remote execution, and Islo sandboxes.
+A demo for Bazel users: Bazel 9 builds a pinned snapshot of
+[pydantic/monty](https://github.com/pydantic/monty) (a Python interpreter in
+Rust) with Bzlmod and `rules_rust`, without a fork. The local remote-cache run
+is measured (121.1s cold, 15.7s fully cached); provider cache and remote
+execution (RBE) are scripted but not yet measured.
 
-The demo is designed for a blog post and GitHub Pages site at:
-
-https://zozo123.github.io/bazel-monty/
+Write-up and live page: https://zozo123.github.io/bazel-monty/
 
 ## Quick Start
 
@@ -75,14 +75,15 @@ Bazelisk and runs the Bazel demo.
   Cargo metadata.
 - A patch overlay that adds Bazel targets to an upstream source archive without
   maintaining a long-lived fork.
-- Three Islo sandbox runs: cache seed, cache reader, and RBE validation.
+- One measured Islo sandbox build and test; provider cache and RBE stages are
+  scripted (`scripts/run_islo_demo.sh`) but have no committed results yet.
 - GitHub Pages docs with reusable command transcripts and metrics.
 
 ## Latest Numbers
 
 - Local remote-cache seed: `121.135s`, `756` processes, `1` test passed.
-- Local readonly cache reader: `15.706s`, `432` remote cache hits out of `756`
-  processes, about `57.1%`.
+- Local readonly cache reader: `15.706s`; all `432` executable actions were
+  remote cache hits (Bazel: `756 processes: 432 remote cache hit, 325 internal`).
 - Islo CLI sandbox: `//:monty_cli` built in `120.287s` across `1302`
   processes; `//:core_tests` passed in `1.719s`.
 - Reference GitHub CI run: success in `5m01s`.
@@ -108,7 +109,7 @@ The committed machine-readable summary is
 
 ## Publishing
 
-The public fork is:
+The public repository is:
 
 https://github.com/zozo123/bazel-monty
 
